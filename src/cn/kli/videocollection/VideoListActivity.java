@@ -34,9 +34,6 @@ public class VideoListActivity extends Activity implements OnClickListener {
 	
 	private final int UPDATE_INFO = 0;
 	
-	private String AK = "TNpoLK8ynIMRtUfTfgMYpuGe";
-	private String SK = "ZywHFheGKhdDcAQqIvMGVd4wMbKhWuIK";
-	
 	String[] mRetInfo = new String[] {
 			"RET_NEW_PACKAGE_INSTALLED",
 			"RET_NO_NEW_PACKAGE",
@@ -76,9 +73,9 @@ public class VideoListActivity extends Activity implements OnClickListener {
 		initUI();
 	}
 	
-	void initUI(){
-		mInstallBtn = (Button)findViewById(R.id.installBtn);
-		mInfoTV = (TextView)findViewById(R.id.infoTV);
+	private void initUI(){
+		mInstallBtn = (Button)findViewById(R.id.bt_download_engine);
+		mInfoTV = (TextView)findViewById(R.id.tv_info);
 		mVideoList = (ListView)findViewById(R.id.lv_video_list);
 		mInstallBtn.setOnClickListener(this);
 		mVideoAdapter = new VideoAdapter(this);
@@ -91,6 +88,15 @@ public class VideoListActivity extends Activity implements OnClickListener {
 				playVideo(mVideoAdapter.getItem(pos).url);
 			}
 		});
+		
+	}
+	
+	@Override
+	protected void onResume() {
+		super.onResume();
+		boolean engPrepared = isEngineInstalled();
+		findViewById(R.id.ll_engine).setVisibility(engPrepared ? View.GONE : View.VISIBLE);
+		findViewById(R.id.ll_ads).setVisibility(engPrepared ? View.VISIBLE : View.GONE);
 	}
 
 	@Override
@@ -98,7 +104,7 @@ public class VideoListActivity extends Activity implements OnClickListener {
 		// TODO Auto-generated method stub
 		int id = v.getId();
 		switch(id){
-		case R.id.installBtn:
+		case R.id.bt_download_engine:
 			checkEngineInstalled();
 			break;
 		default:
@@ -114,7 +120,7 @@ public class VideoListActivity extends Activity implements OnClickListener {
 				setInfo("Please input a valid video path");
 			}else{
 				BEngineManager mgr = BCyberPlayerFactory.createEngineManager();
-				mgr.initCyberPlayerEngine(AK, SK);
+				mgr.initCyberPlayerEngine(Config.AK, Config.SK);
 				Intent intent = new Intent(this, VideoViewPlayingActivity.class);
 				intent.setData(Uri.parse(url));
 				startActivity(intent);
@@ -144,50 +150,25 @@ public class VideoListActivity extends Activity implements OnClickListener {
 	}
 
 	private OnEngineListener mEngineListener = new OnEngineListener(){
-		String info = "";
-		
-		String dlhead = "install engine: onDownload   ";
-		String dlbody = "";
 		@Override
 		public boolean onPrepare() {
-			// TODO Auto-generated method stub
-			info = "install engine: onPrepare.\n";
-			setInfo(info);
 			return true;
 		}
 
 		@Override
 		public int onDownload(int total, int current) {
-			// TODO Auto-generated method stub
-			if(dlhead != null){
-				info += dlhead;
-				dlhead = null;
-			}
-			dlbody = current + "/" + total;
-			setInfo(info + dlbody + "\n");
+			String info = current/1000 + "kb / " + total/1000+"kb";
+			setInfo(info);
 			return DOWNLOAD_CONTINUE;
 		}
 		
 		@Override
 		public int onPreInstall() {
-			// TODO Auto-generated method stub
-			info += dlbody;
-			info += "\n";
-			info += "install engine: onPreInstall.\n";
-			setInfo(info);
-			
 			return DOWNLOAD_CONTINUE;
 		}
 
 		@Override
 		public void onInstalled(int result) {
-			// TODO Auto-generated method stub
-			info += "install engine: onInstalled, ret = " + mRetInfo[result] + "\n";
-			setInfo(info);
-			if(result == OnEngineListener.RET_NEW_PACKAGE_INSTALLED){
-				//BEngineManager mgr = BCyberPlayerFactory.createEngineManager();
-				//mgr.initCyberPlayerEngine(AK, SK);
-			}
 		}		
 	};
 
