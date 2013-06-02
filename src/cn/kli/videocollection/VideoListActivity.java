@@ -10,6 +10,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -33,6 +34,10 @@ public class VideoListActivity extends Activity implements OnClickListener {
 	private VideoAdapter mVideoAdapter;
 	
 	private final int UPDATE_INFO = 0;
+	private final int PLAY_VIDEO = 1;
+	
+	private String AK = "TNpoLK8ynIMRtUfTfgMYpuGe";
+	private String SK = "ZywHFheGKhdDcAQqIvMGVd4wMbKhWuIK";
 	
 	String[] mRetInfo = new String[] {
 			"RET_NEW_PACKAGE_INSTALLED",
@@ -55,6 +60,9 @@ public class VideoListActivity extends Activity implements OnClickListener {
 			case UPDATE_INFO:
 				mInfoTV.setText((String)msg.obj);
 				break;
+			case PLAY_VIDEO:
+				playVideo((String)msg.obj);
+				break;
 			default:
 				break;
 			}
@@ -73,9 +81,9 @@ public class VideoListActivity extends Activity implements OnClickListener {
 		initUI();
 	}
 	
-	private void initUI(){
-		mInstallBtn = (Button)findViewById(R.id.bt_download_engine);
-		mInfoTV = (TextView)findViewById(R.id.tv_info);
+	void initUI(){
+		mInstallBtn = (Button)findViewById(R.id.installBtn);
+		mInfoTV = (TextView)findViewById(R.id.infoTV);
 		mVideoList = (ListView)findViewById(R.id.lv_video_list);
 		mInstallBtn.setOnClickListener(this);
 		mVideoAdapter = new VideoAdapter(this);
@@ -83,28 +91,32 @@ public class VideoListActivity extends Activity implements OnClickListener {
 		mVideoList.setOnItemClickListener(new OnItemClickListener() {
 
 			@Override
-			public void onItemClick(AdapterView<?> arg0, View arg1, int pos,
+			public void onItemClick(AdapterView<?> arg0, View arg1, final int pos,
 					long arg3) {
-				playVideo(mVideoAdapter.getItem(pos).url);
+				new Thread(){
+
+					@Override
+					public void run() {
+						super.run();
+						BaiduNetDiskParser parser = new BaiduNetDiskParser(VideoListActivity.this);
+						String src = parser.parseUrl(mVideoAdapter.getItem(pos).url);
+						Log.i("klilog", src);
+						Message msg = mUIHandler.obtainMessage(PLAY_VIDEO);
+						msg.obj = src;
+						msg.sendToTarget();
+					}
+					
+				}.start();
 			}
 		});
-		
 	}
 	
-	@Override
-	protected void onResume() {
-		super.onResume();
-		boolean engPrepared = isEngineInstalled();
-		findViewById(R.id.ll_engine).setVisibility(engPrepared ? View.GONE : View.VISIBLE);
-		findViewById(R.id.ll_ads).setVisibility(engPrepared ? View.VISIBLE : View.GONE);
-	}
-
 	@Override
 	public void onClick(View v) {
 		// TODO Auto-generated method stub
 		int id = v.getId();
 		switch(id){
-		case R.id.bt_download_engine:
+		case R.id.installBtn:
 			checkEngineInstalled();
 			break;
 		default:
@@ -120,7 +132,7 @@ public class VideoListActivity extends Activity implements OnClickListener {
 				setInfo("Please input a valid video path");
 			}else{
 				BEngineManager mgr = BCyberPlayerFactory.createEngineManager();
-				mgr.initCyberPlayerEngine(Config.AK, Config.SK);
+				mgr.initCyberPlayerEngine(AK, SK);
 				Intent intent = new Intent(this, VideoViewPlayingActivity.class);
 				intent.setData(Uri.parse(url));
 				startActivity(intent);
@@ -150,25 +162,50 @@ public class VideoListActivity extends Activity implements OnClickListener {
 	}
 
 	private OnEngineListener mEngineListener = new OnEngineListener(){
+		String info = "";
+		
+		String dlhead = "install engine: onDownload   ";
+		String dlbody = "";
 		@Override
 		public boolean onPrepare() {
+			// TODO Auto-generated method stub
+			info = "install engine: onPrepare.\n";
+			setInfo(info);
 			return true;
 		}
 
 		@Override
 		public int onDownload(int total, int current) {
-			String info = current/1000 + "kb / " + total/1000+"kb";
-			setInfo(info);
+			// TODO Auto-generated method stub
+			if(dlhead != null){
+				info += dlhead;
+				dlhead = null;
+			}
+			dlbody = current + "/" + total;
+			setInfo(info + dlbody + "\n");
 			return DOWNLOAD_CONTINUE;
 		}
 		
 		@Override
 		public int onPreInstall() {
+			// TODO Auto-generated method stub
+			info += dlbody;
+			info += "\n";
+			info += "install engine: onPreInstall.\n";
+			setInfo(info);
+			
 			return DOWNLOAD_CONTINUE;
 		}
 
 		@Override
 		public void onInstalled(int result) {
+			// TODO Auto-generated method stub
+			info += "install engine: onInstalled, ret = " + mRetInfo[result] + "\n";
+			setInfo(info);
+			if(result == OnEngineListener.RET_NEW_PACKAGE_INSTALLED){
+				//BEngineManager mgr = BCyberPlayerFactory.createEngineManager();
+				//mgr.initCyberPlayerEngine(AK, SK);
+			}
 		}		
 	};
 
@@ -180,15 +217,6 @@ public class VideoListActivity extends Activity implements OnClickListener {
 		mUIHandler.sendMessage(msg);
 	}
 	
-	private class VideoInfo{
-		String title;
-		String url;
-		
-		VideoInfo(String title, String url){
-			this.title = title;
-			this.url = url;
-		}
-	}
 	
 	private class VideoAdapter extends BaseAdapter{
 		private Context mContext;
@@ -198,10 +226,10 @@ public class VideoListActivity extends Activity implements OnClickListener {
 		VideoAdapter(Context context){
 			mContext = context;
 			inflater = LayoutInflater.from(mContext);
-			videoList.add(new VideoInfo("TBC", "http://bj.baidupcs.com/file/89e33b2dd19d2ebb16f05a86701ca43b?fid=2852451119-250528-3278443244&time=1369241723&sign=FDTAR-DCb740ccc5511e5e8fedcff06b081203-VF2Kp%2FKEgzHpv9LEXQxZzYP2a58%3D&rt=sh&expires=8h&r=230927202&sh=1&xcode=35ba00cfa457b42caf853e09a17b1fa7&redirect=1"));
+			videoList.add(new VideoInfo("TBC", "http://wsdl6.yunpan.cn/share.php?method=Share.download&fhash=a876543784aeecad1950ccf1a3231473832a5545&xqid=74879046&fname=%E5%A4%A7%E7%81%BE%E5%8F%98-720p-en.mp4&fsize=38626261&nid=13698350152977153&cqid=49a8db637f7c15d0a4e26d70fd020af8&st=1620a730805afacce2232fff5dfbc9a0&e=1370009964"));
 			videoList.add(new VideoInfo("WLK", "http://bj.baidupcs.com/file/9d6738fe82fe24ec5d9c8888437908b8?fid=2852451119-250528-425624354&time=1369241723&sign=FDTAR-DCb740ccc5511e5e8fedcff06b081203-kzXHv7TBM1l1O1HmeeGxYIOEnhk%3D&rt=sh&expires=8h&r=902745917&sh=1&xcode=0b15f9722a3cf19b832585c21582586d&redirect=1"));
 			videoList.add(new VideoInfo("CTM", "http://bj.baidupcs.com/file/022b6f678f31482df0388ad0633f9c7f?fid=2852451119-250528-3626398307&time=1369241723&sign=FDTAR-DCb740ccc5511e5e8fedcff06b081203-A1uOnVDMlAQMB%2Bzd540DdWGBw1U%3D&rt=sh&expires=8h&r=458862257&sh=1&xcode=b75548bd7954fddde16206346c2e0bd1&redirect=1"));
-			videoList.add(new VideoInfo("MOP", "http://bj.baidupcs.com/file/b6eb3359a7c43bfb00c18c82a3fa7353?fid=2852451119-250528-2265029866&time=1369241723&sign=FDTAR-DCb740ccc5511e5e8fedcff06b081203-YsGHjw%2B0tp8FgCDuHGvUCU6vScM%3D&rt=sh&expires=8h&r=193078210&sh=1&xcode=b75548bd7954fddd5589ab5cf3551107&redirect=1"));
+			videoList.add(new VideoInfo("MOP", "http://pan.baidu.com/share/link?shareid=498392&uk=2852451119"));
 		}
 
 		@Override
