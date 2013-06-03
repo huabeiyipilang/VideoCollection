@@ -12,6 +12,7 @@ import org.apache.http.util.EntityUtils;
 
 import android.content.Context;
 import android.os.Message;
+import android.text.TextUtils;
 
 public class BaiduNetDiskParser {
 	
@@ -25,6 +26,9 @@ public class BaiduNetDiskParser {
 	
 	public String parseUrl(String origin){
 		String result = null;
+		if(TextUtils.isEmpty(origin)){
+			return result;
+		}
 		HttpUriRequest req = new HttpGet(origin);
 		try {
 			HttpClient mHttpClient = new DefaultHttpClient();

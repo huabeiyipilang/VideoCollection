@@ -1,13 +1,6 @@
 package cn.kli.videocollection;
 
-import com.baidu.cyberplayer.sdk.BCyberPlayerFactory;
-import com.baidu.cyberplayer.sdk.BEngineManager;
-import com.baidu.cyberplayer.sdk.BVideoView;
-import com.baidu.cyberplayer.sdk.BVideoView.OnCompletionListener;
-import com.baidu.cyberplayer.sdk.BVideoView.OnErrorListener;
-import com.baidu.cyberplayer.sdk.BVideoView.OnInfoListener;
-import com.baidu.cyberplayer.sdk.BVideoView.OnPreparedListener;
-import com.baidu.cyberplayer.sdk.BMediaController;
+import org.json.JSONObject;
 
 import android.app.Activity;
 import android.content.Context;
@@ -19,8 +12,19 @@ import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+
+import com.baidu.cyberplayer.sdk.BMediaController;
+import com.baidu.cyberplayer.sdk.BVideoView;
+import com.baidu.cyberplayer.sdk.BVideoView.OnCompletionListener;
+import com.baidu.cyberplayer.sdk.BVideoView.OnErrorListener;
+import com.baidu.cyberplayer.sdk.BVideoView.OnInfoListener;
+import com.baidu.cyberplayer.sdk.BVideoView.OnPreparedListener;
+import com.baidu.mobads.AdSize;
+import com.baidu.mobads.AdView;
+import com.baidu.mobads.AdViewListener;
 
 public class VideoViewPlayingActivity extends Activity implements OnPreparedListener, OnCompletionListener, OnErrorListener, OnInfoListener {
 	
@@ -32,6 +36,7 @@ public class VideoViewPlayingActivity extends Activity implements OnPreparedList
 	private BMediaController mVVCtl = null;
 	private RelativeLayout mViewHolder = null;
 	private LinearLayout mControllerHolder = null;
+	private ViewGroup mAdsContainer = null;
 	
 	private boolean mIsHwDecode = false;
 	
@@ -104,7 +109,12 @@ public class VideoViewPlayingActivity extends Activity implements OnPreparedList
 			}
 		}
 		
-		initUI();
+		initAdViews();
+	}
+	
+	private void initAdViews() {
+		mAdsContainer = (ViewGroup) findViewById(R.id.ll_ads_container);
+		mAdsContainer.addView(getAdsView(), new ViewGroup.LayoutParams(-1, -1));
 	}
 	
 	private void initUI() {		
@@ -126,6 +136,72 @@ public class VideoViewPlayingActivity extends Activity implements OnPreparedList
 		mVV.setDecodeMode(BVideoView.DECODE_SW);
 	}
 	
+	private AdView getAdsView(){
+		final AdView adView=new AdView(this, AdSize.VideoInterstitial, null);
+		adView.setListener(new AdViewListener(){
+
+			@Override
+			public void onAdClick(JSONObject arg0) {
+				
+			}
+
+			@Override
+			public void onAdFailed(String arg0) {
+				
+			}
+
+			@Override
+			public void onAdReady(AdView arg0) {
+				
+			}
+
+			@Override
+			public void onAdShow(JSONObject arg0) {
+				
+			}
+
+			@Override
+			public void onAdSwitch() {
+				
+			}
+
+			@Override
+			public void onVideoClickAd() {
+				Log.i("Demo", "onVideoClickAd");
+			}
+
+			@Override
+			public void onVideoClickClose() {
+				Log.i("Demo", "onVideoClickClose");
+			}
+
+			@Override
+			public void onVideoClickReplay() {
+				Log.i("Demo", "onVideoClickReplay");
+			}
+
+			@Override
+			public void onVideoError() {
+				Log.i("Demo", "onVideoError");
+			}
+
+			@Override
+			public void onVideoFinish() {
+				Log.i("Demo", "onVideoFinish");
+				mAdsContainer.removeView(adView);
+				initUI();
+				mUIHandler.sendEmptyMessage(UI_EVENT_PLAY);	
+			}
+
+			@Override
+			public void onVideoStart() {
+				Log.i("Demo", "onVideoStart");
+			}
+			
+		});
+		return adView;
+	}
+	
 	@Override
 	protected void onPause() {
 		// TODO Auto-generated method stub
@@ -145,8 +221,7 @@ public class VideoViewPlayingActivity extends Activity implements OnPreparedList
 		Log.v(TAG, "onResume");
 		if (null != mWakeLock && (!mWakeLock.isHeld())) {
 			mWakeLock.acquire();
-		}
-		mUIHandler.sendEmptyMessage(UI_EVENT_PLAY);		
+		}	
 	}
 	
 	@Override

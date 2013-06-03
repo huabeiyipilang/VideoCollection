@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">CyberPlayerSDKSample</string>
+    <string name="app_name">CG Video</string>
     <string name="action_settings">Settings</string>
     <string name="hello_world">Hello world!</string>
-
+	
+    <string name="parser_video_path">正在解析视频地址</string>
+    <string name="error_video_path">无效地址</string>
 </resources>

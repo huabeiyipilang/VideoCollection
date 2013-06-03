@@ -1,32 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <video-list>
     <video>
-        <name>CG</name>
-        <pic></pic>
+        <title>CG</title>
+        <pic>n1.png</pic>
         <url></url>
     </video>
     
     <video>
-        <name>燃烧的远征</name>
-        <pic></pic>
-        <source>http://pan.baidu.com/share/link?shareid=507000&uk=2852451119</source>
+        <title>燃烧的远征</title>
+        <pic>n2.png</pic>
+        <url><![CDATA[http://pan.baidu.com/share/link?shareid=507000&uk=2852451119]]></url>
     </video>
     
     <video>
-        <name>巫妖王之怒</name>
-        <pic></pic>
-        <source>http://pan.baidu.com/share/link?shareid=506999&uk=2852451119</source>
+        <title>巫妖王之怒</title>
+        <pic>n3.png</pic>
+        <url><![CDATA[http://pan.baidu.com/share/link?shareid=506999&uk=2852451119]]></url>
     </video>
     
     <video>
-        <name>浩劫与重生</name>
-        <pic></pic>
-        <source>http://pan.baidu.com/share/link?shareid=507001&uk=2852451119</source>
+        <title>浩劫与重生</title>
+        <pic>n4.png</pic>
+        <url><![CDATA[http://pan.baidu.com/share/link?shareid=507001&uk=2852451119]]></url>
     </video>
     
     <video>
-        <name>潘达利亚的迷雾</name>
-        <pic></pic>
-        <source>http://pan.baidu.com/share/link?shareid=507002&uk=2852451119</source>
+        <title>潘达利亚的迷雾</title>
+        <pic>n5.png</pic>
+        <url><![CDATA[http://pan.baidu.com/share/link?shareid=507002&uk=2852451119]]></url>
     </video>
 </video-list>

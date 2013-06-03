@@ -2,20 +2,32 @@
     android:id="@+id/root"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:orientation="horizontal">
+    android:orientation="horizontal" >
 
-    <RelativeLayout
-        android:id="@+id/view_holder"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true" >      
-    </RelativeLayout>
- 	
-    <LinearLayout        
+    <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true" >
+
+        <RelativeLayout
+            android:id="@+id/view_holder"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+        </RelativeLayout>
+
+        <LinearLayout
+            android:id="@+id/ll_ads_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+        </LinearLayout>
+    </FrameLayout>
+
+    <LinearLayout
         android:id="@+id/controller_holder"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:orientation="vertical" >
     </LinearLayout>
+
 </RelativeLayout>
