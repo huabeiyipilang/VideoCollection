@@ -47,6 +47,8 @@
 				<category android:name="android.intent.category.BROWSABLE" />
             </intent-filter>
         </activity>
+       	<activity android:name="EngineInstallActivity"
+       	    android:launchMode="singleInstance"></activity>
         
     </application>
 </manifest>

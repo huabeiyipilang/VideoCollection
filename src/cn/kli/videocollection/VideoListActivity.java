@@ -17,12 +17,10 @@ import android.os.Message;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.BaseAdapter;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -30,52 +28,15 @@ import android.widget.Toast;
 
 import com.baidu.cyberplayer.sdk.BCyberPlayerFactory;
 import com.baidu.cyberplayer.sdk.BEngineManager;
-import com.baidu.cyberplayer.sdk.BEngineManager.OnEngineListener;
 import com.baidu.mobads.MultiFuncService;
 
-public class VideoListActivity extends Activity implements OnClickListener, OnItemClickListener {
+public class VideoListActivity extends Activity implements OnItemClickListener {
 	private final String TAG = "MainActivity";
-	private Button mInstallBtn;
-	private TextView mInfoTV;
 	private ListView mVideoList;
 	private VideoAdapter mVideoAdapter;
 	private ProgressDialog mWaitingDialog;
 	
-	private final int UPDATE_INFO = 0;
 	private final int PLAY_VIDEO = 1;
-	
-	private String AK = "TNpoLK8ynIMRtUfTfgMYpuGe";
-	private String SK = "ZywHFheGKhdDcAQqIvMGVd4wMbKhWuIK";
-	
-	String[] mRetInfo = new String[] {
-			"RET_NEW_PACKAGE_INSTALLED",
-			"RET_NO_NEW_PACKAGE",
-			"RET_STOPPED",
-			"RET_CANCELED",
-			"RET_FAILED_STORAGE_IO",
-			"RET_FAILED_NETWORK",
-			"RET_FAILED_ALREADY_RUNNING",
-			"RET_FAILED_OTHERS",
-			"RET_FAILED_ALREADY_INSTALLED",
-			"RET_FAILED_INVALID_APK"
-	};
-	
-	
-	
-	Handler mUIHandler = new Handler() {
-		public void handleMessage(Message msg) {
-			switch (msg.what) {
-			case UPDATE_INFO:
-				mInfoTV.setText((String)msg.obj);
-				break;
-			case PLAY_VIDEO:
-				playVideo((String)msg.obj);
-				break;
-			default:
-				break;
-			}
-		}
-	};
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -90,27 +51,23 @@ public class VideoListActivity extends Activity implements OnClickListener, OnIt
 	}
 	
 	void initUI(){
-		mInstallBtn = (Button)findViewById(R.id.installBtn);
-		mInfoTV = (TextView)findViewById(R.id.infoTV);
 		mVideoList = (ListView)findViewById(R.id.lv_video_list);
-		mInstallBtn.setOnClickListener(this);
 		mVideoAdapter = new VideoAdapter(this);
 		mVideoList.setAdapter(mVideoAdapter);
 		mVideoList.setOnItemClickListener(this);
 	}
 	
-	@Override
-	public void onClick(View v) {
-		// TODO Auto-generated method stub
-		int id = v.getId();
-		switch(id){
-		case R.id.installBtn:
-			checkEngineInstalled();
-			break;
-		default:
-			break;
+	private Handler mUIHandler = new Handler() {
+		public void handleMessage(Message msg) {
+			switch (msg.what) {
+			case PLAY_VIDEO:
+				playVideo((String)msg.obj);
+				break;
+			default:
+				break;
+			}
 		}
-	}
+	};
 	
 	private void playVideo(String url){
 		if(mWaitingDialog != null && mWaitingDialog.isShowing()){
@@ -118,18 +75,15 @@ public class VideoListActivity extends Activity implements OnClickListener, OnIt
 		}
 		
 		if(!isEngineInstalled()){
-			setInfo("CyberPlayerEngine not installed,\n please install it first");
+			Intent intent = new Intent(this, EngineInstallActivity.class);
+			intent.putExtra("url", url);
+			startActivity(intent);
 		}else{
 			if(url == null || url.equals("") || "null".equals(url)){
 				Toast.makeText(this, R.string.error_video_path, Toast.LENGTH_SHORT).show();
 			}else{
 				Log.i("klilog", url);
-				BEngineManager mgr = BCyberPlayerFactory.createEngineManager();
-				mgr.initCyberPlayerEngine(AK, SK);
-				Intent intent = new Intent(this, VideoViewPlayingActivity.class);
-				intent.setData(Uri.parse(url));
-				startActivity(intent);
-				MultiFuncService.getInstance(this).videoPreLoad(this, null);
+				BaiduPlayer.Play(this, url);
 			}
 		}
 	}
@@ -139,78 +93,7 @@ public class VideoListActivity extends Activity implements OnClickListener, OnIt
 		BEngineManager mgr = BCyberPlayerFactory.createEngineManager();
 		return mgr.EngineInstalled();
 	}
-	
-	private void installEngine(){
-		BEngineManager mgr = BCyberPlayerFactory.createEngineManager();
-		mgr.installAsync(mEngineListener);
-	}
-	
-	private void checkEngineInstalled(){
-		if(isEngineInstalled()){
-			setInfo("CyberPlayerEngine Installed.\n");
-			//BEngineManager mgr = BCyberPlayerFactory.createEngineManager();
-			//mgr.initCyberPlayerEngine(AK, SK);
-		}else{
-			installEngine();
-		}
-	}
 
-	private OnEngineListener mEngineListener = new OnEngineListener(){
-		String info = "";
-		
-		String dlhead = "install engine: onDownload   ";
-		String dlbody = "";
-		@Override
-		public boolean onPrepare() {
-			// TODO Auto-generated method stub
-			info = "install engine: onPrepare.\n";
-			setInfo(info);
-			return true;
-		}
-
-		@Override
-		public int onDownload(int total, int current) {
-			// TODO Auto-generated method stub
-			if(dlhead != null){
-				info += dlhead;
-				dlhead = null;
-			}
-			dlbody = current + "/" + total;
-			setInfo(info + dlbody + "\n");
-			return DOWNLOAD_CONTINUE;
-		}
-		
-		@Override
-		public int onPreInstall() {
-			// TODO Auto-generated method stub
-			info += dlbody;
-			info += "\n";
-			info += "install engine: onPreInstall.\n";
-			setInfo(info);
-			
-			return DOWNLOAD_CONTINUE;
-		}
-
-		@Override
-		public void onInstalled(int result) {
-			// TODO Auto-generated method stub
-			info += "install engine: onInstalled, ret = " + mRetInfo[result] + "\n";
-			setInfo(info);
-			if(result == OnEngineListener.RET_NEW_PACKAGE_INSTALLED){
-				//BEngineManager mgr = BCyberPlayerFactory.createEngineManager();
-				//mgr.initCyberPlayerEngine(AK, SK);
-			}
-		}		
-	};
-
-	
-	private void setInfo(String info){
-		Message msg = new Message();
-		msg.what = UPDATE_INFO;
-		msg.obj = info;
-		mUIHandler.sendMessage(msg);
-	}
-	
 	
 	private class VideoAdapter extends BaseAdapter{
 		private Context mContext;
