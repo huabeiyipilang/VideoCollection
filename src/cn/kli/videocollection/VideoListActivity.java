@@ -144,8 +144,9 @@ public class VideoListActivity extends Activity implements OnItemClickListener {
 			try {
 				is = mContext.getAssets().open(getItem(pos).pic);
 				holder.pic.setImageBitmap(BitmapFactory.decodeStream(is));
-			} catch (IOException e) {
-				e.printStackTrace();
+				holder.pic.setVisibility(View.VISIBLE);
+			} catch (Exception e) {
+				holder.pic.setVisibility(View.GONE);
 			}
 			
 			return convertView;
